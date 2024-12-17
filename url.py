@@ -1,0 +1,31 @@
+import requests
+import re
+
+def is_valid_url(url):
+    """
+    Validate the URL format using regex.
+    """
+    regex = re.compile(
+        r'^(?:http|https)://'  # http:// or https://
+        r'(?:\S+(?::\S*)?@)?'  # optional username:password@
+        r'(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}'  # domain
+        r'(?::\d{2,5})?'  # optional port
+        r'(?:/[^?#]*)?'  # optional path
+        r'(?:\?[^#]*)?'  # optional query
+        r'(?:#.*)?$', re.IGNORECASE)  # optional fragment
+    return re.match(regex, url)
+
+def check_url(url):
+    if not is_valid_url(url):
+        return "Invalid URL format."
+
+    try:
+        response = requests.head(url, allow_redirects=True)
+        final_url = response.url
+        print(f"The URL redirects to: {final_url}")
+        return "URL seems safe."
+    except requests.exceptions.RequestException as e:
+        return f"Error: {e}"
+
+url = input("Enter a URL to check: ")
+print(check_url(url))
