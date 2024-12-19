@@ -15,6 +15,27 @@ def is_valid_url(url):
         r'(?:#.*)?$', re.IGNORECASE)  # optional fragment
     return re.match(regex, url)
 
+# Known suspicious keywords
+SUSPICIOUS_KEYWORDS = ["phishing", "malware", "suspicious", "login", "account-verification"]
+
+def check_url(url):
+    if not is_valid_url(url):
+        return "Invalid URL format."
+
+    try:
+        response = requests.head(url, allow_redirects=True)
+        final_url = response.url
+        print(f"The URL redirects to: {final_url}")
+
+        # Check for suspicious keywords
+        if any(keyword in final_url.lower() for keyword in SUSPICIOUS_KEYWORDS):
+            return "⚠️ Potential phishing site detected!"
+
+        return "✅ URL seems safe."
+    except requests.exceptions.RequestException as e:
+        return f"❌ Error: {e}"
+
+        
 def check_url(url):
     if not is_valid_url(url):
         return "Invalid URL format."
