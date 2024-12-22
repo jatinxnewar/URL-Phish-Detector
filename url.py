@@ -100,17 +100,29 @@ def check_url(url):
         logging.error(f"Error checking URL {url}: {e}")
         return f"❌ Error: {e}"
 
+
 def check_url(url):
     if not is_valid_url(url):
         return "Invalid URL format."
 
     try:
-        response = requests.head(url, allow_redirects=True)
+        # Add a timeout to the request
+        response = requests.head(url, allow_redirects=True, timeout=5)
         final_url = response.url
         print(f"The URL redirects to: {final_url}")
-        return "URL seems safe."
-    except requests.exceptions.RequestException as e:
-        return f"Error: {e}"
 
-url = input("Enter a URL to check: ")
-print(check_url(url))
+        if any(keyword in final_url.lower() for keyword in SUSPICIOUS_KEYWORDS):
+            logging.info(f"Suspicious URL detected: {final_url}")
+            return "⚠️ Potential phishing site detected!"
+
+        if check_blacklist(final_url):
+            logging.info(f"Blacklisted URL detected: {final_url}")
+            return "🚨 URL is on the blacklist!"
+
+        return "✅ URL seems safe."
+    except requests.exceptions.Timeout:
+        logging.error(f"Timeout while checking URL: {url}")
+        return "❌ Error: The request timed out."
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error checking URL {url}: {e}")
+        return f"❌ Error: {e}"
