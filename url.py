@@ -126,3 +126,15 @@ def check_url(url):
     except requests.exceptions.RequestException as e:
         logging.error(f"Error checking URL {url}: {e}")
         return f"❌ Error: {e}"
+
+
+def main():
+    """
+    Main function to handle user input and URL checking.
+    """
+    print("🔍 URL Shortener Detector - Prevent Phishing Attempts")
+    url = input("Enter a URL to check: ").strip()
+    print(check_url(url))
+
+if __name__ == "__main__":
+    main()
