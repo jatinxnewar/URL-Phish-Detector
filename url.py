@@ -129,12 +129,17 @@ def check_url(url):
 
 
 def main():
-    """
-    Main function to handle user input and URL checking.
-    """
     print("🔍 URL Shortener Detector - Prevent Phishing Attempts")
-    url = input("Enter a URL to check: ").strip()
-    print(check_url(url))
+    print("Enter 'exit' to quit.\n")
+    
+    while True:
+        url = input("Enter a URL to check: ").strip()
+        if url.lower() == "exit":
+            print("Exiting the program. Stay safe!")
+            break
+        
+        result = check_url(url)
+        print(result, "\n")
 
 if __name__ == "__main__":
     main()
