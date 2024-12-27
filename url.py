@@ -127,7 +127,7 @@ def check_url(url):
         logging.error(f"Error checking URL {url}: {e}")
         return f"❌ Error: {e}"
 
-
+#The main function starts
 def main():
     print("🔍 URL Shortener Detector - Prevent Phishing Attempts")
     print("Enter 'exit' to quit.\n")
