@@ -44,11 +44,17 @@ def analyze_url(url):
         return "Invalid URL format."
 
     try:
-        response = requests.head(url, allow_redirects=True, timeout=5)
+        headers = {"User-Agent": "Mozilla/5.0 (compatible; URLChecker/1.0)"}
+        response = requests.head(url, allow_redirects=True, headers=headers, timeout=5)
         final_url = response.url
         domain = urlparse(final_url).netloc.lower()
 
         print(f"🔗 Final URL: {final_url}")
+
+        # Check for shortened URLs
+        if is_shortened_url(domain):
+            logging.warning(f"Shortened URL detected: {final_url}")
+            return "⚠️ Shortened URL detected. Proceed with caution!"
 
         # Check for suspicious keywords
         if any(keyword in final_url.lower() for keyword in SUSPICIOUS_KEYWORDS):
