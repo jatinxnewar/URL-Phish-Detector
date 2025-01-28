@@ -80,6 +80,13 @@ def is_shortened_url(domain):
     """
     return domain in URL_SHORTENERS
 
+def check_safe_browsing_api(url):
+    """
+    Placeholder for integration with Google's Safe Browsing API.
+    """
+    # Simulate Safe Browsing detection (replace with actual API call)
+    return False
+
 def analyze_url(url):
     """
     Analyze the given URL for potential threats.
@@ -88,7 +95,8 @@ def analyze_url(url):
         return "Invalid URL format."
 
     try:
-        response = requests.head(url, allow_redirects=True, timeout=5)
+        headers = {"User-Agent": "Mozilla/5.0 (compatible; URLChecker/1.0)"}
+        response = requests.head(url, allow_redirects=True, headers=headers, timeout=5)
         final_url = response.url
         domain = urlparse(final_url).netloc.lower()
 
@@ -108,6 +116,11 @@ def analyze_url(url):
         if check_blacklist(domain):
             logging.info(f"Blacklisted URL detected: {final_url}")
             return "🚨 URL is on the blacklist!"
+
+        # Check Safe Browsing API
+        if check_safe_browsing_api(final_url):
+            logging.info(f"Unsafe URL detected by Safe Browsing API: {final_url}")
+            return "🚨 URL flagged by Safe Browsing API!"
 
         return "✅ URL seems safe."
     except requests.exceptions.Timeout:
