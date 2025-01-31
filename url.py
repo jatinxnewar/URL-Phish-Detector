@@ -74,6 +74,7 @@ def analyze_url(url):
         logging.error(f"Error checking URL {url}: {e}")
         return f"❌ Error: {e}"
 
+
 def is_shortened_url(domain):
     """
     Check if the domain is a known URL shortener.
