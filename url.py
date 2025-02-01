@@ -15,6 +15,40 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+def check_safe_browsing_api(url):
+    """
+    Check the URL against Google's Safe Browsing API with logging.
+    """
+    if not GOOGLE_SAFE_BROWSING_API_KEY:
+        logging.warning("Safe Browsing API key is missing.")
+        return False
+
+    api_url = f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={GOOGLE_SAFE_BROWSING_API_KEY}"
+    payload = {
+        "client": {"clientId": "your-app", "clientVersion": "1.0"},
+        "threatInfo": {
+            "threatTypes": ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE", "POTENTIALLY_HARMFUL_APPLICATION"],
+            "platformTypes": ["ANY_PLATFORM"],
+            "threatEntryTypes": ["URL"],
+            "threatEntries": [{"url": url}],
+        },
+    }
+
+    try:
+        response = requests.post(api_url, json=payload)
+        response_data = response.json()
+
+        if "matches" in response_data:
+            logging.info(f"Unsafe URL detected by Safe Browsing API: {url}")
+            return True  # URL is flagged as unsafe
+
+        return False  # URL is safe
+
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Safe Browsing API error: {e}")
+        return False
+
+
 def is_valid_url(url):
     """
     Validate the URL format using regex.
