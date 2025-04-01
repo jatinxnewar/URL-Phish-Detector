@@ -1,13 +1,17 @@
 import requests
 import re
-from urllib.parse import urlparse
 import logging
+import os
+from urllib.parse import urlparse
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Constants
-SUSPICIOUS_KEYWORDS = ["phishing", "malware", "suspicious", "login", "account-verification"]
+SUSPICIOUS_KEYWORDS = {"phishing", "malware", "suspicious", "login", "account-verification"}
 BLACKLISTED_DOMAINS = {"example-phishing.com", "malicious-site.net"}
-URL_SHORTENERS = {"bit.ly", "tinyurl.com", "t.co", "ow.ly", "is.gd"}  # Set for faster lookups
-GOOGLE_SAFE_BROWSING_API_KEY = ""  # Add your API key here
+URL_SHORTENERS = {"bit.ly", "tinyurl.com", "t.co", "ow.ly", "is.gd"}
 
 # Logging setup
 logging.basicConfig(
@@ -16,7 +20,7 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-def check_safe_browsing_api(url):
+def check_safe_browsing_api(url: str) -> bool:
     """Check the URL against Google's Safe Browsing API."""
     if not GOOGLE_SAFE_BROWSING_API_KEY:
         logging.warning("Safe Browsing API key is missing.")
@@ -35,38 +39,38 @@ def check_safe_browsing_api(url):
 
     try:
         response = requests.post(api_url, json=payload, timeout=5)
-        response.raise_for_status()  # Raise error for non-200 responses
+        response.raise_for_status()
         response_data = response.json()
 
         if "matches" in response_data:
             logging.info(f"🚨 Unsafe URL detected: {url}")
-            return True  # URL flagged as unsafe
+            return True
 
-        return False  # URL seems safe
+        return False
 
     except requests.RequestException as e:
         logging.error(f"Safe Browsing API error: {e}")
         return False
 
-def is_valid_url(url):
+def is_valid_url(url: str) -> bool:
     """Validate the URL format using regex."""
     regex = re.compile(
-        r'^(https?://)?'  # http:// or https:// (optional for input flexibility)
-        r'([a-zA-Z0-9.-]+(\.[a-zA-Z]{2,6}))'  # Domain
+        r'^(https?:\/\/)?'  # http:// or https://
+        r'([\w.-]+(?:\.[a-zA-Z]{2,6}))'  # Domain
         r'(:\d{2,5})?'  # Optional port
-        r'(/.*)?$', re.IGNORECASE  # Optional path
+        r'(\/.*)?$', re.IGNORECASE  # Optional path
     )
     return re.match(regex, url) is not None
 
-def is_shortened_url(domain):
+def is_shortened_url(domain: str) -> bool:
     """Check if the domain is a known URL shortener."""
     return domain in URL_SHORTENERS
 
-def check_blacklist(domain):
+def check_blacklist(domain: str) -> bool:
     """Check if the domain is blacklisted."""
     return domain in BLACKLISTED_DOMAINS
 
-def analyze_url(url):
+def analyze_url(url: str) -> str:
     """Analyze the given URL for potential threats."""
     if not is_valid_url(url):
         return "❌ Invalid URL format."
@@ -79,29 +83,25 @@ def analyze_url(url):
 
         print(f"🔗 Final URL: {final_url}")
 
-        # Check for shortened URLs
         if is_shortened_url(domain):
             logging.warning(f"⚠️ Shortened URL detected: {final_url}")
             return "⚠️ Warning: Shortened URL detected. Proceed with caution!"
 
-        # Check for suspicious keywords
         if any(keyword in final_url.lower() for keyword in SUSPICIOUS_KEYWORDS):
             logging.info(f"⚠️ Suspicious URL detected: {final_url}")
             return "⚠️ Potential phishing site detected!"
 
-        # Check against blacklist
         if check_blacklist(domain):
             logging.info(f"🚨 Blacklisted URL detected: {final_url}")
             return "🚨 URL is on the blacklist!"
 
-        # Check Safe Browsing API
         if check_safe_browsing_api(final_url):
             logging.info(f"🚨 Unsafe URL flagged by Safe Browsing API: {final_url}")
             return "🚨 Warning: URL flagged by Safe Browsing API!"
 
         return "✅ URL seems safe."
     
-    except requests.exceptions.Timeout:
+    except requests.Timeout:
         logging.error(f"❌ Timeout while checking URL: {url}")
         return "❌ Error: The request timed out."
     
